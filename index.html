@@ -18,18 +18,18 @@
 <body>
     <div class="login-card">
         <h2>TradeJournal Login</h2>
-        <input type="password" id="password-input" placeholder="Enter Access Password" />
+        <input type="password" id="password-input" placeholder="Enter Access Password" autocomplete="off" />
         <button onclick="checkPassword()">Enter Dashboard</button>
         <p id="error-message" class="error-msg">Invalid password!</p>
     </div>
 
     <script>
         // SHA-256 Hash of default password "secret123"
-        const PREDEFINED_HASH = "b123f95a5578ac2ffb571adb3fd60b023e925128d1ef5bf917a73a8fa3d136a4";
+        const PREDEFINED_HASH = "c7e616822f366fb1b5e0756af498cc11d2c0862edcb32ca65882f622ff39de1b";
 
-        async function hashString(text) {
+        async function sha256(plainText) {
             const encoder = new TextEncoder();
-            const data = encoder.encode(text);
+            const data = encoder.encode(plainText);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -38,14 +38,17 @@
         async function checkPassword() {
             const inputField = document.getElementById("password-input");
             const errorMessage = document.getElementById("error-message");
-            const hashedInput = await hashString(inputField.value);
+            
+            // Trim whitespace to avoid copy-paste spaces
+            const userPassword = inputField.value.trim();
+            const hashedInput = await sha256(userPassword);
 
-            if (hashedInput === PREDEFINED_HASH) {
-                // Set temporary session auth and redirect
+            if (hashedInput.toLowerCase() === PREDEFINED_HASH.toLowerCase()) {
                 sessionStorage.setItem("tj_authenticated", "true");
                 window.location.href = "dashboard.html";
             } else {
                 errorMessage.style.display = "block";
+                inputField.value = "";
             }
         }
 
