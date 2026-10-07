@@ -3,40 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trade Journal</title>
+    <title>TradeJournal - Authentication</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            background: #1e293b;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border: 1px solid #334155;
-        }
-        h1 {
-            color: #38bdf8;
-            margin-bottom: 0.5rem;
-        }
-        p {
-            color: #94a3b8;
-            font-size: 1.1rem;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-card { background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; text-align: center; width: 100%; max-width: 400px; }
+        .login-card h2 { color: #38bdf8; margin-bottom: 1.5rem; }
+        .login-card input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #475569; background-color: #0f172a; color: #fff; font-size: 1rem; outline: none; }
+        .login-card button { width: 100%; padding: 0.75rem; border-radius: 6px; border: none; background-color: #0284c7; color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .login-card button:hover { background-color: #0369a1; }
+        .error-msg { color: #ef4444; font-size: 0.9rem; margin-top: 1rem; display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>TradeJournal</h1>
-        <p>Hello Sumon! Your trading dashboard is live.</p>
+    <div class="login-card">
+        <h2>TradeJournal Login</h2>
+        <input type="password" id="password-input" placeholder="Enter Access Password" />
+        <button onclick="checkPassword()">Enter Dashboard</button>
+        <p id="error-message" class="error-msg">Invalid password!</p>
     </div>
+
+    <script>
+        // SHA-256 Hash of default password "secret123"
+        const PREDEFINED_HASH = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
+
+        async function hashString(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function checkPassword() {
+            const inputField = document.getElementById("password-input");
+            const errorMessage = document.getElementById("error-message");
+            const hashedInput = await hashString(inputField.value);
+
+            if (hashedInput === PREDEFINED_HASH) {
+                // Set temporary session auth and redirect
+                sessionStorage.setItem("tj_authenticated", "true");
+                window.location.href = "dashboard.html";
+            } else {
+                errorMessage.style.display = "block";
+            }
+        }
+
+        document.getElementById("password-input").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") checkPassword();
+        });
+    </script>
 </body>
 </html>
